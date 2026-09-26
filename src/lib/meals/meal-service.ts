@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getFoodById } from "@/lib/nutrition/food-service";
 import { calculateNutrition, type CalculatedNutrition } from "@/lib/nutrition/calc-engine";
+import { calculateRecipeServingNutrition } from "@/lib/nutrition/recipe-engine";
 import type {
   Food,
   FoodState,
@@ -64,6 +65,7 @@ export type AddMealItemInput = {
   mealType?: MealType;
   foodId?: string;
   food?: Food;
+  recipeId?: string;
   customFood?: {
     name: string;
     state: FoodState;
@@ -394,14 +396,61 @@ export async function addFoodToMeal(
     }
   }
 
-  // 2. Resolve Food and Nutrition
+  // 2. Resolve Food or Recipe and Nutrition
   let calculated: CalculatedNutrition | null = null;
   let foodName = "";
   let foodState: FoodState = "cooked";
   let provenance: DataProvenance = "verified_database";
   let sourceRef: string | null = "IFCT 2017";
+  let recipeId: string | null = null;
 
-  if (input.food) {
+  if (input.recipeId) {
+    const { data: recipe, error: recipeErr } = await supabase
+      .from("recipes")
+      .select("*")
+      .eq("id", input.recipeId)
+      .eq("user_id", userId)
+      .single();
+
+    if (recipeErr || !recipe) {
+      throw new Error(`Recipe with ID "${input.recipeId}" not found or unauthorized.`);
+    }
+
+    recipeId = recipe.id;
+    let servingGrams = input.quantity;
+    if (input.unit === "serving" || input.unit === "servings") {
+      const baseWeight = recipe.final_cooked_weight_g || recipe.total_raw_weight_g || 100;
+      servingGrams = (baseWeight / (recipe.servings || 1)) * input.quantity;
+    }
+
+    const recipeCalc = calculateRecipeServingNutrition(recipe, servingGrams);
+    foodName = recipe.name;
+    foodState = "cooked";
+    provenance = recipeCalc.dataProvenance;
+    sourceRef = `Custom Recipe: ${recipe.name}`;
+
+    calculated = {
+      foodId: "",
+      foodName: recipe.name,
+      state: "cooked",
+      inputQuantity: input.quantity,
+      inputUnit: input.unit,
+      effectiveWeightGrams: servingGrams,
+      calories: recipeCalc.calories,
+      protein: recipeCalc.protein,
+      carbs: recipeCalc.carbs,
+      fat: recipeCalc.fat,
+      fiber: recipeCalc.fiber,
+      sugar: recipeCalc.sugar,
+      sodiumMg: recipeCalc.sodiumMg,
+      isEstimatedPortion: recipeCalc.isEstimatedPortion,
+      portionAssumption: recipe.final_cooked_weight_g
+        ? `Serving ${Math.round(servingGrams)}g from cooked batch ${recipe.final_cooked_weight_g}g`
+        : "Estimated serving weight",
+      dataProvenance: recipeCalc.dataProvenance,
+      sourceReference: `Custom Recipe: ${recipe.name}`,
+    };
+  } else if (input.food) {
     calculated = calculateNutrition({
       food: input.food,
       quantity: input.quantity,
@@ -441,7 +490,7 @@ export async function addFoodToMeal(
     provenance = "user_entered";
     sourceRef = "Manual Custom Entry";
   } else {
-    throw new Error("Either foodId, food object, or customFood must be provided.");
+    throw new Error("Either foodId, food object, recipeId, or customFood must be provided.");
   }
 
   // 3. Prepare snapshot payload
@@ -449,6 +498,7 @@ export async function addFoodToMeal(
     meal_log_id: mealLogId,
     user_id: userId,
     food_id: input.food?.id || input.foodId || null,
+    recipe_id: recipeId,
     food_name: foodName,
     food_state: foodState,
     quantity: input.quantity,
@@ -519,7 +569,48 @@ export async function updateMealItemQuantity(
     updated_at: new Date().toISOString(),
   };
 
-  if (existing.food_id) {
+  if (existing.recipe_id) {
+    const { data: recipe } = await supabase
+      .from("recipes")
+      .select("*")
+      .eq("id", existing.recipe_id)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (recipe) {
+      let servingGrams = input.quantity;
+      if (newUnit === "serving" || newUnit === "servings") {
+        const baseWeight = recipe.final_cooked_weight_g || recipe.total_raw_weight_g || 100;
+        servingGrams = (baseWeight / (recipe.servings || 1)) * input.quantity;
+      }
+      const recipeCalc = calculateRecipeServingNutrition(recipe, servingGrams);
+      updatePayload = {
+        ...updatePayload,
+        gram_weight: servingGrams,
+        calories: recipeCalc.calories,
+        protein: recipeCalc.protein,
+        carbs: recipeCalc.carbs,
+        fat: recipeCalc.fat,
+        fiber: recipeCalc.fiber,
+        sugar: recipeCalc.sugar,
+        sodium_mg: recipeCalc.sodiumMg,
+      };
+    } else {
+      // Recipe was deleted: scale existing snapshot proportionally
+      const ratio = input.quantity / (existing.quantity || 1);
+      updatePayload = {
+        ...updatePayload,
+        gram_weight: roundToDecimals(existing.gram_weight * ratio, 1),
+        calories: Math.round(existing.calories * ratio),
+        protein: roundToDecimals(existing.protein * ratio, 1),
+        carbs: roundToDecimals(existing.carbs * ratio, 1),
+        fat: roundToDecimals(existing.fat * ratio, 1),
+        fiber: roundToDecimals(existing.fiber * ratio, 1),
+        sugar: existing.sugar !== null ? roundToDecimals(existing.sugar * ratio, 1) : null,
+        sodium_mg: existing.sodium_mg !== null ? roundToDecimals(existing.sodium_mg * ratio, 1) : null,
+      };
+    }
+  } else if (existing.food_id) {
     let food = getFoodById(existing.food_id);
     if (!food) {
       const { data: dbFood } = await supabase

@@ -14,6 +14,7 @@ const AddMealItemSchema = z
     mealType: z.enum(["breakfast", "lunch", "dinner", "snack", "other"]).optional(),
     foodId: z.string().optional(),
     food: z.any().optional(),
+    recipeId: z.string().optional(),
     customFood: z
       .object({
         name: z.string().min(1),
@@ -33,8 +34,8 @@ const AddMealItemSchema = z
   .refine((data) => data.mealLogId || (data.date && data.mealType), {
     message: "Either mealLogId or both date and mealType must be specified",
   })
-  .refine((data) => data.foodId || data.food || data.customFood, {
-    message: "Either foodId, food object, or customFood must be specified",
+  .refine((data) => data.foodId || data.food || data.recipeId || data.customFood, {
+    message: "Either foodId, food object, recipeId, or customFood must be specified",
   });
 
 /**
