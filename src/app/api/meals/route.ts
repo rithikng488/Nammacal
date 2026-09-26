@@ -5,6 +5,7 @@ import {
   addFoodToMeal,
   normalizeDateString,
 } from "@/lib/meals/meal-service";
+import { recordAuditEvent } from "@/lib/audit/audit-service";
 import { z } from "zod";
 
 const AddMealItemSchema = z
@@ -104,6 +105,29 @@ export async function POST(request: NextRequest) {
     }
 
     const newItem = await addFoodToMeal(user.id, parseResult.data, supabase);
+
+    // Audit: Log meal creation
+    await recordAuditEvent(
+      {
+        eventType: "meal_created",
+        userId: user.id,
+        entityType: "meal_item",
+        entityId: newItem.id,
+        severity: "info",
+        metadata: {
+          meal_log_id: newItem.meal_log_id,
+          food_name: newItem.food_name,
+          quantity: newItem.quantity,
+          unit: newItem.unit,
+          calories: newItem.calories,
+          protein: newItem.protein,
+          carbs: newItem.carbs,
+          fat: newItem.fat,
+        },
+        userAgent: request.headers.get("user-agent"),
+      },
+      supabase
+    );
 
     return NextResponse.json(
       {

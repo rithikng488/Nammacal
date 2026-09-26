@@ -5,11 +5,16 @@ import { enforceAIRateLimit } from "@/lib/ai/rate-limiter";
 import { getVoiceTranscriber, getFoodParser } from "@/lib/ai/provider-factory";
 import { matchCandidateToDatabase } from "@/lib/ai/food-matcher";
 import { getUserRecipes } from "@/lib/recipes/recipe-service";
+import { recordAuditEvent } from "@/lib/audit/audit-service";
 import type { Recipe } from "@/lib/supabase/types";
 
 export async function POST(request: NextRequest) {
+  let userId: string | null = null;
+  let supabaseClient: any = null;
+
   try {
     const supabase = await createClient();
+    supabaseClient = supabase;
     const {
       data: { user },
       error: authError,
@@ -21,6 +26,8 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    userId = user.id;
 
     let transcript = "";
     const contentType = request.headers.get("content-type") || "";
@@ -43,6 +50,22 @@ export async function POST(request: NextRequest) {
 
       // Validate Audio (MIME, size <= 10MB)
       const { mimeType } = validateVoiceAudio(audioBuffer, declaredMime);
+
+      // Audit: Log voice logging started
+      await recordAuditEvent(
+        {
+          eventType: "voice_log_started",
+          userId: user.id,
+          entityType: "voice_log",
+          severity: "info",
+          metadata: {
+            mime_type: mimeType,
+            byte_size: audioBuffer.length,
+          },
+          userAgent: request.headers.get("user-agent"),
+        },
+        supabase
+      );
 
       // Enforce Rate Limit for voice transcription
       await enforceAIRateLimit(user.id, "voice_transcription", supabase);
@@ -92,6 +115,22 @@ export async function POST(request: NextRequest) {
       });
     });
 
+    // Audit: Log voice log transcribed
+    await recordAuditEvent(
+      {
+        eventType: "voice_log_transcribed",
+        userId: user.id,
+        entityType: "voice_log",
+        severity: "info",
+        metadata: {
+          parsed_draft_count: drafts.length,
+          unparsed_count: parseResult.unparsedSegments?.length || 0,
+        },
+        userAgent: request.headers.get("user-agent"),
+      },
+      supabase
+    );
+
     return NextResponse.json({
       success: true,
       transcript,
@@ -103,6 +142,22 @@ export async function POST(request: NextRequest) {
           : "Could not detect food items. Please type or re-record.",
     });
   } catch (err: unknown) {
+    if (userId && supabaseClient) {
+      await recordAuditEvent(
+        {
+          eventType: "voice_log_failed",
+          userId,
+          entityType: "voice_log",
+          severity: "error",
+          metadata: {
+            error_message: (err as Error).message,
+          },
+          userAgent: request.headers.get("user-agent"),
+        },
+        supabaseClient
+      );
+    }
+
     if (err instanceof MediaValidationError) {
       return NextResponse.json({ error: err.message, code: err.code }, { status: 400 });
     }

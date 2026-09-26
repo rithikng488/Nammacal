@@ -5,6 +5,7 @@ import {
   getUserHabitsWithTodayStatus,
   type CreateHabitInput,
 } from "@/lib/habits/habit-service";
+import { recordAuditEvent } from "@/lib/audit/audit-service";
 
 export async function GET(request: NextRequest) {
   try {
@@ -55,6 +56,23 @@ export async function POST(request: NextRequest) {
     };
 
     const habit = await createHabit(user.id, input, supabase);
+
+    // Audit: Log habit creation
+    await recordAuditEvent(
+      {
+        eventType: "habit_created",
+        userId: user.id,
+        entityType: "habit",
+        entityId: habit.id,
+        severity: "info",
+        metadata: {
+          habit_name: habit.name,
+          frequency: habit.frequency,
+        },
+        userAgent: request.headers.get("user-agent"),
+      },
+      supabase
+    );
 
     return NextResponse.json({
       success: true,

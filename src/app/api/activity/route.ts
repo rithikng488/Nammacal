@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { logActivity, getActivityHistory, type CreateActivityInput } from "@/lib/activity/activity-service";
+import { recordAuditEvent } from "@/lib/audit/audit-service";
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,6 +59,26 @@ export async function POST(request: NextRequest) {
     };
 
     const activity = await logActivity(user.id, input, supabase);
+
+    // Audit: Log activity creation
+    await recordAuditEvent(
+      {
+        eventType: "activity_created",
+        userId: user.id,
+        entityType: "activity_log",
+        entityId: activity.id,
+        severity: "info",
+        metadata: {
+          activity_type: activity.activity_type,
+          duration_minutes: activity.duration_minutes,
+          source: activity.source,
+          calorie_provenance: activity.calorie_provenance,
+          calories_burned: activity.calories_burned,
+        },
+        userAgent: request.headers.get("user-agent"),
+      },
+      supabase
+    );
 
     return NextResponse.json({
       success: true,

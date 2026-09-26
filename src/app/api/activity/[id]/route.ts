@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { updateActivityLog, deleteActivityLog, type UpdateActivityInput } from "@/lib/activity/activity-service";
+import { recordAuditEvent } from "@/lib/audit/audit-service";
 
 export async function PATCH(
   request: NextRequest,
@@ -29,6 +30,24 @@ export async function PATCH(
     if (body.note !== undefined) input.note = body.note;
 
     const updated = await updateActivityLog(user.id, id, input, supabase);
+
+    // Audit: Log activity updated
+    await recordAuditEvent(
+      {
+        eventType: "activity_updated",
+        userId: user.id,
+        entityType: "activity_log",
+        entityId: id,
+        severity: "info",
+        metadata: {
+          activity_type: updated.activity_type,
+          duration_minutes: updated.duration_minutes,
+          calories_burned: updated.calories_burned,
+        },
+        userAgent: request.headers.get("user-agent"),
+      },
+      supabase
+    );
 
     return NextResponse.json({
       success: true,
@@ -59,6 +78,19 @@ export async function DELETE(
 
     const { id } = await params;
     await deleteActivityLog(user.id, id, supabase);
+
+    // Audit: Log activity deleted
+    await recordAuditEvent(
+      {
+        eventType: "activity_deleted",
+        userId: user.id,
+        entityType: "activity_log",
+        entityId: id,
+        severity: "info",
+        userAgent: request.headers.get("user-agent"),
+      },
+      supabase
+    );
 
     return NextResponse.json({
       success: true,

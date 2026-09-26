@@ -5,6 +5,7 @@ import {
   logWeight,
   WeightValidationError,
 } from "@/lib/weight/weight-service";
+import { recordAuditEvent } from "@/lib/audit/audit-service";
 import { z } from "zod";
 
 const LogWeightSchema = z.object({
@@ -76,6 +77,22 @@ export async function POST(request: NextRequest) {
         weightKg: parsed.data.weightKg,
         loggedAt: parsed.data.loggedAt,
         note: parsed.data.note,
+      },
+      supabase
+    );
+
+    // Audit: Log weight logged event (without storing sensitive weight measurement)
+    await recordAuditEvent(
+      {
+        eventType: "weight_logged",
+        userId: user.id,
+        entityType: "weight_log",
+        entityId: logged.id,
+        severity: "info",
+        metadata: {
+          logged_at: logged.logged_at,
+        },
+        userAgent: request.headers.get("user-agent"),
       },
       supabase
     );

@@ -187,6 +187,72 @@ export type ActivityExternalRecord = {
   updated_at: string;
 };
 
+export type AuditEventSeverity = 'info' | 'warning' | 'error' | 'security';
+
+export type AuditEventType =
+  | 'user_login'
+  | 'user_logout'
+  | 'account_created'
+  | 'account_activated'
+  | 'account_deactivated'
+  | 'unauthorized_admin_access_attempt'
+  | 'meal_created'
+  | 'meal_updated'
+  | 'meal_deleted'
+  | 'meal_item_added'
+  | 'meal_item_updated'
+  | 'meal_item_deleted'
+  | 'recipe_logged'
+  | 'food_photo_uploaded'
+  | 'food_photo_analyzed'
+  | 'food_photo_confirmed'
+  | 'food_photo_rejected'
+  | 'voice_log_started'
+  | 'voice_log_transcribed'
+  | 'voice_log_confirmed'
+  | 'voice_log_rejected'
+  | 'voice_log_failed'
+  | 'recipe_created'
+  | 'recipe_updated'
+  | 'recipe_deleted'
+  | 'activity_created'
+  | 'activity_updated'
+  | 'activity_deleted'
+  | 'health_connect_connected'
+  | 'health_connect_disconnected'
+  | 'health_connect_permission_granted'
+  | 'health_connect_permission_revoked'
+  | 'health_connect_sync_started'
+  | 'health_connect_sync_completed'
+  | 'health_connect_sync_failed'
+  | 'weight_logged'
+  | 'weight_updated'
+  | 'weight_deleted'
+  | 'water_logged'
+  | 'habit_created'
+  | 'habit_updated'
+  | 'habit_completed'
+  | 'habit_deleted'
+  | 'api_error'
+  | 'ai_error'
+  | 'validation_error'
+  | 'security_event'
+  | 'screenshot_detected';
+
+export type AdminAuditEvent = {
+  id: string;
+  user_id: string | null;
+  actor_user_id: string | null;
+  event_type: AuditEventType | string;
+  entity_type: string;
+  entity_id: string | null;
+  severity: AuditEventSeverity;
+  metadata: Record<string, any>;
+  ip_hash: string | null;
+  user_agent_summary: string | null;
+  created_at: string;
+};
+
 export type Invitation = {
   id: string;
   email: string;
@@ -914,6 +980,36 @@ export type Database = {
           end_time?: string | null;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      admin_audit_events: {
+        Row: AdminAuditEvent;
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          actor_user_id?: string | null;
+          event_type: AuditEventType | string;
+          entity_type: string;
+          entity_id?: string | null;
+          severity: AuditEventSeverity;
+          metadata?: Record<string, any>;
+          ip_hash?: string | null;
+          user_agent_summary?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          actor_user_id?: string | null;
+          event_type?: AuditEventType | string;
+          entity_type?: string;
+          entity_id?: string | null;
+          severity?: AuditEventSeverity;
+          metadata?: Record<string, any>;
+          ip_hash?: string | null;
+          user_agent_summary?: string | null;
+          created_at?: string;
         };
         Relationships: [];
       };

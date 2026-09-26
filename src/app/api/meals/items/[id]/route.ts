@@ -4,6 +4,7 @@ import {
   updateMealItemQuantity,
   deleteMealItem,
 } from "@/lib/meals/meal-service";
+import { recordAuditEvent } from "@/lib/audit/audit-service";
 import { z } from "zod";
 
 const UpdateMealItemSchema = z.object({
@@ -53,6 +54,24 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       supabase
     );
 
+    // Audit: Log meal item updated
+    await recordAuditEvent(
+      {
+        eventType: "meal_item_updated",
+        userId: user.id,
+        entityType: "meal_item",
+        entityId: id,
+        severity: "info",
+        metadata: {
+          new_quantity: parseResult.data.quantity,
+          unit: parseResult.data.unit,
+          new_calories: updatedItem.calories,
+        },
+        userAgent: request.headers.get("user-agent"),
+      },
+      supabase
+    );
+
     return NextResponse.json({
       success: true,
       item: updatedItem,
@@ -68,7 +87,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
  * DELETE /api/meals/items/[id]
  * Deletes a logged meal item owned by the authenticated user.
  */
-export async function DELETE(_request: NextRequest, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
     const supabase = await createClient();
     const {
@@ -86,6 +105,19 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     }
 
     await deleteMealItem(user.id, id, supabase);
+
+    // Audit: Log meal item deleted
+    await recordAuditEvent(
+      {
+        eventType: "meal_item_deleted",
+        userId: user.id,
+        entityType: "meal_item",
+        entityId: id,
+        severity: "info",
+        userAgent: request.headers.get("user-agent"),
+      },
+      supabase
+    );
 
     return NextResponse.json({
       success: true,

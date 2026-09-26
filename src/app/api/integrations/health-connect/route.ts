@@ -4,6 +4,7 @@ import {
   getHealthIntegration,
   setHealthIntegrationStatus,
 } from "@/lib/integrations/health-connect/health-connect-sync-service";
+import { recordAuditEvent } from "@/lib/audit/audit-service";
 
 export async function GET() {
   try {
@@ -59,6 +60,21 @@ export async function PATCH(request: NextRequest) {
     }
 
     const updated = await setHealthIntegrationStatus(user.id, body.enabled, supabase);
+
+    // Audit: Log connection state change
+    await recordAuditEvent(
+      {
+        eventType: body.enabled ? "health_connect_connected" : "health_connect_disconnected",
+        userId: user.id,
+        entityType: "health_connect",
+        severity: "info",
+        metadata: {
+          enabled: body.enabled,
+        },
+        userAgent: request.headers.get("user-agent"),
+      },
+      supabase
+    );
 
     return NextResponse.json({
       success: true,

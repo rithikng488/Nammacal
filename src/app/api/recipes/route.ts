@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getUserRecipes, createRecipe } from "@/lib/recipes/recipe-service";
+import { recordAuditEvent } from "@/lib/audit/audit-service";
 import { z } from "zod";
 
 const RecipeIngredientSchema = z.object({
@@ -83,6 +84,25 @@ export async function POST(request: NextRequest) {
     }
 
     const recipe = await createRecipe(user.id, parseResult.data, supabase);
+
+    // Audit: Log recipe creation
+    await recordAuditEvent(
+      {
+        eventType: "recipe_created",
+        userId: user.id,
+        entityType: "recipe",
+        entityId: recipe.id,
+        severity: "info",
+        metadata: {
+          recipe_name: recipe.name,
+          servings: recipe.servings,
+          ingredients_count: parseResult.data.ingredients.length,
+          total_calories: recipe.total_calories,
+        },
+        userAgent: request.headers.get("user-agent"),
+      },
+      supabase
+    );
 
     return NextResponse.json(
       {

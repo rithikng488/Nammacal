@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { toggleHabitCompletion } from "@/lib/habits/habit-service";
+import { recordAuditEvent } from "@/lib/audit/audit-service";
 
 export async function POST(
   request: NextRequest,
@@ -30,6 +31,24 @@ export async function POST(
     const note = body?.note || null;
 
     const log = await toggleHabitCompletion(user.id, id, date, completed, note, supabase);
+
+    if (log && log.completed) {
+      await recordAuditEvent(
+        {
+          eventType: "habit_completed",
+          userId: user.id,
+          entityType: "habit_log",
+          entityId: log.id,
+          severity: "info",
+          metadata: {
+            habit_id: id,
+            logged_date: log.logged_date,
+          },
+          userAgent: request.headers.get("user-agent"),
+        },
+        supabase
+      );
+    }
 
     return NextResponse.json({
       success: true,

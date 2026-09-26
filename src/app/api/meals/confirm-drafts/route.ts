@@ -7,6 +7,7 @@ import {
   getDailyMeals,
   normalizeDateString,
 } from "@/lib/meals/meal-service";
+import { recordAuditEvent } from "@/lib/audit/audit-service";
 import type { MealItem } from "@/lib/supabase/types";
 
 export async function POST(request: NextRequest) {
@@ -71,6 +72,48 @@ export async function POST(request: NextRequest) {
       );
 
       savedItems.push(saved);
+    }
+
+    // Determine event types from provenance
+    const hasPhoto = items.some((i) => i.provenance === "ai_photo_estimate");
+    const hasVoice = items.some((i) => i.provenance === "ai_voice_parse");
+
+    if (hasPhoto) {
+      await recordAuditEvent(
+        {
+          eventType: "food_photo_confirmed",
+          userId: user.id,
+          entityType: "food_photo",
+          entityId: mealLog.id,
+          severity: "info",
+          metadata: {
+            meal_log_id: mealLog.id,
+            meal_type: mealType,
+            confirmed_items_count: items.filter((i) => i.provenance === "ai_photo_estimate").length,
+          },
+          userAgent: request.headers.get("user-agent"),
+        },
+        supabase
+      );
+    }
+
+    if (hasVoice) {
+      await recordAuditEvent(
+        {
+          eventType: "voice_log_confirmed",
+          userId: user.id,
+          entityType: "voice_log",
+          entityId: mealLog.id,
+          severity: "info",
+          metadata: {
+            meal_log_id: mealLog.id,
+            meal_type: mealType,
+            confirmed_items_count: items.filter((i) => i.provenance === "ai_voice_parse").length,
+          },
+          userAgent: request.headers.get("user-agent"),
+        },
+        supabase
+      );
     }
 
     // 3. Return updated timeline

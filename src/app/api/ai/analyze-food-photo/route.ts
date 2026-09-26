@@ -5,12 +5,17 @@ import { enforceAIRateLimit } from "@/lib/ai/rate-limiter";
 import { getVisionAnalyzer } from "@/lib/ai/provider-factory";
 import { matchCandidateToDatabase } from "@/lib/ai/food-matcher";
 import { getUserRecipes } from "@/lib/recipes/recipe-service";
+import { recordAuditEvent } from "@/lib/audit/audit-service";
 import type { VisionAnalysisResponse } from "@/lib/ai/schemas";
 import type { Recipe } from "@/lib/supabase/types";
 
 export async function POST(request: NextRequest) {
+  let userId: string | null = null;
+  let supabaseClient: any = null;
+
   try {
     const supabase = await createClient();
+    supabaseClient = supabase;
     const {
       data: { user },
       error: authError,
@@ -22,6 +27,8 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    userId = user.id;
 
     // 1. Parse Multipart Form Data
     const formData = await request.formData();
@@ -40,6 +47,22 @@ export async function POST(request: NextRequest) {
 
     // 2. Validate Image (Magic bytes, MIME, size <= 5MB)
     const { mimeType } = validateMealPhoto(imageBuffer, declaredMime);
+
+    // Audit: Log explicit food photo upload
+    await recordAuditEvent(
+      {
+        eventType: "food_photo_uploaded",
+        userId: user.id,
+        entityType: "food_photo",
+        severity: "info",
+        metadata: {
+          mime_type: mimeType,
+          byte_size: imageBuffer.length,
+        },
+        userAgent: request.headers.get("user-agent"),
+      },
+      supabase
+    );
 
     // 3. Enforce User Rate Limits
     await enforceAIRateLimit(user.id, "photo_analysis", supabase);
@@ -78,6 +101,33 @@ export async function POST(request: NextRequest) {
       });
     });
 
+    // Audit: Log food photo analyzed
+    await recordAuditEvent(
+      {
+        eventType: "food_photo_analyzed",
+        userId: user.id,
+        entityType: "food_photo",
+        severity: "info",
+        metadata: {
+          draft_count: drafts.length,
+          detected_foods: drafts.map((d) => ({
+            candidate: d.candidateName,
+            matched_id: d.matchedFoodId || d.matchedRecipeId || null,
+            confidence: d.confidence,
+            quantity: d.quantity,
+            unit: d.unit,
+            calories: d.nutritionPreview?.calories || 0,
+            protein: d.nutritionPreview?.protein || 0,
+            carbs: d.nutritionPreview?.carbs || 0,
+            fat: d.nutritionPreview?.fat || 0,
+          })),
+          overall_assumptions: rawResponse?.overall_assumptions || [],
+        },
+        userAgent: request.headers.get("user-agent"),
+      },
+      supabase
+    );
+
     return NextResponse.json({
       success: true,
       drafts,
@@ -90,6 +140,24 @@ export async function POST(request: NextRequest) {
         "Portions estimated from photo. Oil and hidden ingredients cannot be reliably measured from an image. Review before saving.",
     });
   } catch (err: unknown) {
+    if (userId && supabaseClient) {
+      const isValidation = err instanceof MediaValidationError;
+      await recordAuditEvent(
+        {
+          eventType: isValidation ? "validation_error" : "ai_error",
+          userId,
+          entityType: "food_photo",
+          severity: isValidation ? "warning" : "error",
+          metadata: {
+            error_message: (err as Error).message,
+            error_type: "photo_analysis_failure",
+          },
+          userAgent: request.headers.get("user-agent"),
+        },
+        supabaseClient
+      );
+    }
+
     if (err instanceof MediaValidationError) {
       return NextResponse.json({ error: err.message, code: err.code }, { status: 400 });
     }

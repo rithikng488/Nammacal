@@ -6,6 +6,7 @@ import {
   getWaterHistory,
   type LogWaterInput,
 } from "@/lib/water/water-service";
+import { recordAuditEvent } from "@/lib/audit/audit-service";
 
 export async function GET(request: NextRequest) {
   try {
@@ -65,6 +66,23 @@ export async function POST(request: NextRequest) {
 
     const log = await logWater(user.id, input, supabase);
     const summary = await getDailyWaterSummary(user.id, input.loggedAt, supabase);
+
+    // Audit: Log water intake event
+    await recordAuditEvent(
+      {
+        eventType: "water_logged",
+        userId: user.id,
+        entityType: "water_log",
+        entityId: log.id,
+        severity: "info",
+        metadata: {
+          amount_ml: log.amount_ml,
+          logged_at: log.logged_at,
+        },
+        userAgent: request.headers.get("user-agent"),
+      },
+      supabase
+    );
 
     return NextResponse.json({
       success: true,
