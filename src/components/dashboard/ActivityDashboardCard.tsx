@@ -1,20 +1,34 @@
 "use client";
 
-import React from "react";
-import { Activity, Footprints, Clock, Flame, Info, Plus } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Activity, Footprints, Clock, Flame, Info, Plus, RefreshCw } from "lucide-react";
 import type { DayActivitySummaryResult } from "@/lib/activity/activity-service";
+import {
+  isHealthConnectSupported,
+  fetchHealthConnectSteps,
+  fetchHealthConnectExerciseSessions,
+} from "@/lib/integrations/health-connect/health-connect-bridge";
 
 interface ActivityDashboardCardProps {
   activitySummary: DayActivitySummaryResult | null;
   onOpenLogActivity: () => void;
   onOpenLogSteps: () => void;
+  onActivityUpdated?: () => void;
 }
 
 export function ActivityDashboardCard({
   activitySummary,
   onOpenLogActivity,
   onOpenLogSteps,
+  onActivityUpdated,
 }: ActivityDashboardCardProps) {
+  const [isSupported, setIsSupported] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  useEffect(() => {
+    setIsSupported(isHealthConnectSupported());
+  }, []);
+
   const steps = activitySummary?.totalSteps ?? 0;
   const stepSource = activitySummary?.stepSource ?? "manual";
   const duration = activitySummary?.totalDurationMinutes ?? 0;
@@ -28,6 +42,29 @@ export function ActivityDashboardCard({
       : stepSource === "device"
       ? "Device"
       : "Manual";
+
+  const handleQuickSync = async () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    try {
+      const stepsData = await fetchHealthConnectSteps();
+      const sessionsData = await fetchHealthConnectExerciseSessions();
+
+      const res = await fetch("/api/integrations/health-connect/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ days: stepsData, sessions: sessionsData }),
+      });
+
+      if (res.ok && onActivityUpdated) {
+        onActivityUpdated();
+      }
+    } catch (err) {
+      console.warn("Health Connect quick sync failed:", err);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   return (
     <div className="p-4 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs space-y-3.5">
@@ -48,6 +85,18 @@ export function ActivityDashboardCard({
         </div>
 
         <div className="flex items-center gap-1.5">
+          {isSupported && (
+            <button
+              type="button"
+              onClick={handleQuickSync}
+              disabled={isSyncing}
+              title="Sync Health Connect"
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 dark:hover:bg-teal-900/60 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">Sync</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={onOpenLogSteps}
@@ -76,7 +125,13 @@ export function ActivityDashboardCard({
               <Footprints className="w-3 h-3 text-orange-500" />
               Steps
             </span>
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-stone-200/80 dark:bg-stone-700 text-stone-600 dark:text-stone-300">
+            <span
+              className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                stepSource === "health_connect"
+                  ? "bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300"
+                  : "bg-stone-200/80 dark:bg-stone-700 text-stone-600 dark:text-stone-300"
+              }`}
+            >
               {sourceLabel}
             </span>
           </div>

@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { User, LogOut, Target, Shield, Mail } from "lucide-react";
+import { HealthConnectCard } from "@/components/integrations/HealthConnectCard";
 import type { Profile } from "@/lib/supabase/types";
 
 export default function ProfilePage() {
@@ -171,6 +172,9 @@ export default function ProfilePage() {
           </div>
         </div>
       </Card>
+
+      {/* Android Health Connect Integration Card */}
+      <HealthConnectCard />
 
       {/* Security Info Card */}
       <Card className="flex items-start gap-3 bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800">

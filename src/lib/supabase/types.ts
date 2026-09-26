@@ -155,6 +155,38 @@ export type HabitLog = {
   updated_at: string;
 };
 
+export type HealthIntegrationProvider = 'health_connect';
+
+export type HealthIntegration = {
+  id: string;
+  user_id: string;
+  provider: HealthIntegrationProvider;
+  enabled: boolean;
+  connected_at: string;
+  last_sync_at: string | null;
+  last_successful_sync_at: string | null;
+  last_error: string | null;
+  sync_cursor: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExternalRecordType = 'steps' | 'exercise_session' | 'calories';
+
+export type ActivityExternalRecord = {
+  id: string;
+  user_id: string;
+  provider: HealthIntegrationProvider;
+  external_record_id: string;
+  external_record_type: ExternalRecordType;
+  activity_log_id: string | null;
+  source_data_origin: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Invitation = {
   id: string;
   email: string;
@@ -820,6 +852,66 @@ export type Database = {
           logged_date?: string;
           completed?: boolean;
           note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      health_integrations: {
+        Row: HealthIntegration;
+        Insert: {
+          id?: string;
+          user_id: string;
+          provider: HealthIntegrationProvider;
+          enabled?: boolean;
+          connected_at?: string;
+          last_sync_at?: string | null;
+          last_successful_sync_at?: string | null;
+          last_error?: string | null;
+          sync_cursor?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          provider?: HealthIntegrationProvider;
+          enabled?: boolean;
+          connected_at?: string;
+          last_sync_at?: string | null;
+          last_successful_sync_at?: string | null;
+          last_error?: string | null;
+          sync_cursor?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      activity_external_records: {
+        Row: ActivityExternalRecord;
+        Insert: {
+          id?: string;
+          user_id: string;
+          provider: HealthIntegrationProvider;
+          external_record_id: string;
+          external_record_type: ExternalRecordType;
+          activity_log_id?: string | null;
+          source_data_origin?: string | null;
+          start_time?: string | null;
+          end_time?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          provider?: HealthIntegrationProvider;
+          external_record_id?: string;
+          external_record_type?: ExternalRecordType;
+          activity_log_id?: string | null;
+          source_data_origin?: string | null;
+          start_time?: string | null;
+          end_time?: string | null;
           created_at?: string;
           updated_at?: string;
         };

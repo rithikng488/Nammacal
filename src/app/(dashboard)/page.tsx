@@ -247,6 +247,7 @@ export default function DashboardPage() {
         activitySummary={activitySummary}
         onOpenLogActivity={() => setIsActivityModalOpen(true)}
         onOpenLogSteps={() => setIsStepsModalOpen(true)}
+        onActivityUpdated={fetchDashboardData}
       />
 
       {/* 5. Water Dashboard Card */}
