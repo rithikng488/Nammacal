@@ -24,10 +24,23 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+    signingConfigs {
+        release {
+            if (System.getenv("NAMMACAL_KEYSTORE_FILE") != null) {
+                storeFile file(System.getenv("NAMMACAL_KEYSTORE_FILE"))
+                storePassword System.getenv("NAMMACAL_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("NAMMACAL_KEY_ALIAS")
+                keyPassword System.getenv("NAMMACAL_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (System.getenv("NAMMACAL_KEYSTORE_FILE") != null) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }
