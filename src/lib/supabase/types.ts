@@ -56,6 +56,21 @@ export type Profile = {
   daily_water_ml_target: number;
   daily_step_target: number;
   preferred_language: PreferredLanguage;
+  height_cm?: number | null;
+  gender?: 'male' | 'female' | 'other' | null;
+  birth_year?: number | null;
+  activity_level?: 'sedentary' | 'light' | 'moderate' | 'very_active' | 'extra_active' | null;
+  goal?: 'lose_weight' | 'maintain' | 'gain_muscle' | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WeightLog = {
+  id: string;
+  user_id: string;
+  weight_kg: number;
+  logged_at: string;
+  note: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -237,6 +252,11 @@ export type Database = {
           daily_water_ml_target?: number;
           daily_step_target?: number;
           preferred_language?: PreferredLanguage;
+          height_cm?: number | null;
+          gender?: 'male' | 'female' | 'other' | null;
+          birth_year?: number | null;
+          activity_level?: 'sedentary' | 'light' | 'moderate' | 'very_active' | 'extra_active' | null;
+          goal?: 'lose_weight' | 'maintain' | 'gain_muscle' | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -255,6 +275,11 @@ export type Database = {
           daily_water_ml_target?: number;
           daily_step_target?: number;
           preferred_language?: PreferredLanguage;
+          height_cm?: number | null;
+          gender?: 'male' | 'female' | 'other' | null;
+          birth_year?: number | null;
+          activity_level?: 'sedentary' | 'light' | 'moderate' | 'very_active' | 'extra_active' | null;
+          goal?: 'lose_weight' | 'maintain' | 'gain_muscle' | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -563,6 +588,28 @@ export type Database = {
           provider?: string;
           model?: string;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      weight_logs: {
+        Row: WeightLog;
+        Insert: {
+          id?: string;
+          user_id: string;
+          weight_kg: number;
+          logged_at?: string;
+          note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          weight_kg?: number;
+          logged_at?: string;
+          note?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
