@@ -21,10 +21,18 @@ import type { Food } from "@/lib/supabase/types";
 interface FoodDetailCardProps {
   food: Food;
   onClose?: () => void;
-  onAddToMeal?: (item: CalculatedNutrition) => void;
+  onAddToMeal?: (item: CalculatedNutrition) => void | Promise<void>;
+  targetMealLabel?: string;
+  isSubmitting?: boolean;
 }
 
-export function FoodDetailCard({ food, onClose, onAddToMeal }: FoodDetailCardProps) {
+export function FoodDetailCard({
+  food,
+  onClose,
+  onAddToMeal,
+  targetMealLabel,
+  isSubmitting = false,
+}: FoodDetailCardProps) {
   // Available unit options: standard metric + food-specific portions
   const portions = food.standard_portions || [];
   const defaultUnit = portions.length > 0 ? portions[0].unit : food.serving_unit_default || "g";
@@ -63,11 +71,14 @@ export function FoodDetailCard({ food, onClose, onAddToMeal }: FoodDetailCardPro
     }
   };
 
-  const handleAdd = () => {
-    if (calculation) {
+  const handleAdd = async () => {
+    if (calculation && onAddToMeal) {
       setIsAdded(true);
-      if (onAddToMeal) onAddToMeal(calculation);
-      setTimeout(() => setIsAdded(false), 2000);
+      try {
+        await onAddToMeal(calculation);
+      } finally {
+        setTimeout(() => setIsAdded(false), 1500);
+      }
     }
   };
 
@@ -261,18 +272,26 @@ export function FoodDetailCard({ food, onClose, onAddToMeal }: FoodDetailCardPro
           {/* Add to Meal Action Button */}
           <Button
             onClick={handleAdd}
+            disabled={isSubmitting}
             className="w-full gap-2 py-3"
             variant="primary"
           >
             {isAdded ? (
               <>
                 <CheckCircle className="w-4 h-4 text-white" />
-                <span>Added to Meal!</span>
+                <span>Added to {targetMealLabel || "Meal"}!</span>
+              </>
+            ) : isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Logging to {targetMealLabel || "Meal"}...</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                <span>Select & Add to Meal ({calculation.calories} kcal)</span>
+                <span>
+                  Add to {targetMealLabel || "Meal"} ({calculation.calories} kcal)
+                </span>
               </>
             )}
           </Button>

@@ -1,8 +1,10 @@
 import React from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/Card";
 import { MacroCard } from "@/components/dashboard/MacroCard";
 import { QuickActionButtons } from "@/components/dashboard/QuickActionButtons";
+import { getDailyMeals, type DailyTimeline } from "@/lib/meals/meal-service";
 import {
   Flame,
   Droplet,
@@ -11,6 +13,8 @@ import {
   Sparkles,
   Calendar,
   Utensils,
+  Plus,
+  ChevronRight,
 } from "lucide-react";
 import type { Profile } from "@/lib/supabase/types";
 
@@ -21,6 +25,8 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   let profile: Profile | null = null;
+  let dailyTimeline: DailyTimeline | null = null;
+
   if (user) {
     const { data } = await supabase
       .from("profiles")
@@ -28,19 +34,37 @@ export default async function DashboardPage() {
       .eq("id", user.id)
       .single();
     profile = data;
+
+    const now = new Date();
+    const todayDateIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+    try {
+      dailyTimeline = await getDailyMeals(user.id, todayDateIso, supabase);
+    } catch (e) {
+      console.error("Error loading today's meals on dashboard:", e);
+    }
   }
 
-  // Placeholder / Default Target Data for Phase 1
-  const calorieTarget = profile?.daily_calorie_target || 2000;
-  const caloriesConsumed = 0; // Will be aggregated in Phase 3
-  const caloriesRemaining = Math.max(0, calorieTarget - caloriesConsumed);
+  // Target and Consumed Nutritional Data
+  const calorieTarget = dailyTimeline?.targets.calories || profile?.daily_calorie_target || 2000;
+  const caloriesConsumed = dailyTimeline?.totals.calories || 0;
+  const caloriesRemaining = dailyTimeline?.targets.remainingCalories ?? Math.max(0, calorieTarget - caloriesConsumed);
 
-  const proteinTarget = profile?.daily_protein_target || 100;
-  const carbTarget = profile?.daily_carb_target || 250;
-  const fatTarget = profile?.daily_fat_target || 65;
-  const fiberTarget = profile?.daily_fiber_target || 30;
+  const proteinTarget = dailyTimeline?.targets.protein || profile?.daily_protein_target || 100;
+  const proteinConsumed = dailyTimeline?.totals.protein || 0;
 
-  const waterConsumedMl = 0; // Aggregated in Phase 3
+  const carbTarget = dailyTimeline?.targets.carbs || profile?.daily_carb_target || 250;
+  const carbConsumed = dailyTimeline?.totals.carbs || 0;
+
+  const fatTarget = dailyTimeline?.targets.fat || profile?.daily_fat_target || 65;
+  const fatConsumed = dailyTimeline?.totals.fat || 0;
+
+  const fiberTarget = dailyTimeline?.targets.fiber || profile?.daily_fiber_target || 30;
+  const fiberConsumed = dailyTimeline?.totals.fiber || 0;
+
+  const totalItemsCount = dailyTimeline?.meals.reduce((acc, m) => acc + m.items.length, 0) || 0;
+
+  const waterConsumedMl = 0; // Aggregated in Phase 5
   const waterTargetMl = profile?.daily_water_ml_target || 3000;
 
   const currentWeightKg = 72.5; // Placeholder for Phase 7
@@ -63,8 +87,8 @@ export default async function DashboardPage() {
             {todayDateString}
           </span>
         </div>
-        <span className="text-[11px] bg-slate-100 dark:bg-slate-850 px-2 py-0.5 rounded-full font-medium">
-          Phase 1 Active
+        <span className="text-[11px] bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full font-semibold">
+          Phase 3 Active
         </span>
       </div>
 
@@ -112,25 +136,25 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-2 gap-2.5">
           <MacroCard
             label="Protein"
-            consumed={0}
+            consumed={proteinConsumed}
             target={proteinTarget}
             color="emerald"
           />
           <MacroCard
             label="Carbohydrates"
-            consumed={0}
+            consumed={carbConsumed}
             target={carbTarget}
             color="blue"
           />
           <MacroCard
             label="Fat"
-            consumed={0}
+            consumed={fatConsumed}
             target={fatTarget}
             color="amber"
           />
           <MacroCard
             label="Fiber"
-            consumed={0}
+            consumed={fiberConsumed}
             target={fiberTarget}
             color="indigo"
           />
@@ -208,26 +232,72 @@ export default async function DashboardPage() {
         </span>
       </Card>
 
-      {/* Recent Meals Section */}
+      {/* Today's Logged Meals Section */}
       <div className="space-y-2 pt-1">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
             Today&apos;s Meals
           </h3>
-          <span className="text-xs text-emerald-600 font-medium">0 logged</span>
+          <Link
+            href="/meals"
+            className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+          >
+            <span>{totalItemsCount} logged</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
 
-        <Card className="text-center py-8 space-y-2 border-dashed">
-          <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 mx-auto flex items-center justify-center">
-            <Utensils className="w-5 h-5" />
+        {totalItemsCount === 0 ? (
+          <Card className="text-center py-6 space-y-2.5 border-dashed">
+            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 mx-auto flex items-center justify-center">
+              <Utensils className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                No meals logged yet today
+              </p>
+              <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
+                Log breakfast, lunch, dinner, or snacks from our verified South Indian database.
+              </p>
+            </div>
+            <Link
+              href="/meals"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Log First Meal</span>
+            </Link>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {dailyTimeline?.meals
+              .filter((m) => m.items.length > 0)
+              .map((meal) => (
+                <Link
+                  key={meal.mealType}
+                  href="/meals"
+                  className="p-3 rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between hover:border-emerald-500/50 transition-all group block shadow-xs"
+                >
+                  <div className="min-w-0 space-y-0.5">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 capitalize">
+                      {meal.mealName || meal.mealType}
+                    </span>
+                    <p className="text-[11px] text-slate-400 truncate">
+                      {meal.items.map((it) => it.food_name).join(", ")}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white block">
+                      {meal.totalCalories} kcal
+                    </span>
+                    <span className="text-[10px] font-semibold text-emerald-600">
+                      {meal.totalProtein}g Protein
+                    </span>
+                  </div>
+                </Link>
+              ))}
           </div>
-          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-            No meals logged yet today
-          </p>
-          <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
-            Food logging with the South Indian verified database will be enabled in Phase 3.
-          </p>
-        </Card>
+        )}
       </div>
 
       {/* Security & Private App Indicator */}

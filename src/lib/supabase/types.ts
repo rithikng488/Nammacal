@@ -122,6 +122,43 @@ export type RecipeIngredient = {
   created_at: string;
 };
 
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'other';
+
+export type MealLog = {
+  id: string;
+  user_id: string;
+  log_date: string;
+  meal_type: MealType;
+  meal_name: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MealItem = {
+  id: string;
+  meal_log_id: string;
+  user_id: string;
+  food_id: string | null;
+  food_name: string;
+  food_state: FoodState;
+  quantity: number;
+  unit: string;
+  gram_weight: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  sugar: number | null;
+  sodium_mg: number | null;
+  is_estimated_portion: boolean;
+  portion_assumption: string | null;
+  data_provenance: DataProvenance;
+  source_reference: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Json =
   | string
   | number
@@ -317,6 +354,80 @@ export type Database = {
         };
         Relationships: [];
       };
+      meal_logs: {
+        Row: MealLog;
+        Insert: {
+          id?: string;
+          user_id: string;
+          log_date: string;
+          meal_type: MealType;
+          meal_name?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          log_date?: string;
+          meal_type?: MealType;
+          meal_name?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      meal_items: {
+        Row: MealItem;
+        Insert: {
+          id?: string;
+          meal_log_id: string;
+          user_id: string;
+          food_id?: string | null;
+          food_name: string;
+          food_state: FoodState;
+          quantity: number;
+          unit: string;
+          gram_weight: number;
+          calories: number;
+          protein: number;
+          carbs: number;
+          fat: number;
+          fiber?: number;
+          sugar?: number | null;
+          sodium_mg?: number | null;
+          is_estimated_portion?: boolean;
+          portion_assumption?: string | null;
+          data_provenance?: DataProvenance;
+          source_reference?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          meal_log_id?: string;
+          user_id?: string;
+          food_id?: string | null;
+          food_name?: string;
+          food_state?: FoodState;
+          quantity?: number;
+          unit?: string;
+          gram_weight?: number;
+          calories?: number;
+          protein?: number;
+          carbs?: number;
+          fat?: number;
+          fiber?: number;
+          sugar?: number | null;
+          sodium_mg?: number | null;
+          is_estimated_portion?: boolean;
+          portion_assumption?: string | null;
+          data_provenance?: DataProvenance;
+          source_reference?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -331,6 +442,7 @@ export type Database = {
       food_category: FoodCategory;
       food_state: FoodState;
       data_provenance: DataProvenance;
+      meal_type: MealType;
     };
     CompositeTypes: {
       [_ in never]: never;
