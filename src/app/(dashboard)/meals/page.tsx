@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/Card";
 import { MealSectionCard } from "@/components/meals/MealSectionCard";
 import { AddFoodModal } from "@/components/meals/AddFoodModal";
 import { EditMealItemModal } from "@/components/meals/EditMealItemModal";
+import { PhotoUploadModal } from "@/components/ai/PhotoUploadModal";
+import { VoiceLogModal } from "@/components/ai/VoiceLogModal";
 import type { DailyTimeline } from "@/lib/meals/meal-service";
 import type { MealItem, MealType } from "@/lib/supabase/types";
 import {
@@ -16,6 +18,8 @@ import {
   Sparkles,
   RefreshCw,
   PlusCircle,
+  Camera,
+  Mic,
 } from "lucide-react";
 
 /**
@@ -70,6 +74,8 @@ export default function MealsPage() {
 
   // Modal State
   const [addFoodMealType, setAddFoodMealType] = useState<MealType | null>(null);
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState<boolean>(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<MealItem | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -278,6 +284,27 @@ export default function MealsPage() {
         </div>
       </Card>
 
+      {/* Quick AI & Voice Food Logging Bar */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <button
+          type="button"
+          onClick={() => setIsPhotoModalOpen(true)}
+          className="flex items-center justify-center gap-2 p-3 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-xs hover:border-emerald-500 hover:bg-emerald-50/20 transition-all text-xs font-bold text-slate-800 dark:text-slate-100"
+        >
+          <Camera className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span>Photo AI Log</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsVoiceModalOpen(true)}
+          className="flex items-center justify-center gap-2 p-3 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-xs hover:border-emerald-500 hover:bg-emerald-50/20 transition-all text-xs font-bold text-slate-800 dark:text-slate-100"
+        >
+          <Mic className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span>Voice Food Log</span>
+        </button>
+      </div>
+
       {/* Error Banner if any */}
       {error && (
         <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-xs text-rose-700 dark:text-rose-300 flex items-center justify-between">
@@ -353,6 +380,26 @@ export default function MealsPage() {
           onClose={() => setEditingItem(null)}
           onItemUpdated={() => fetchTimeline(currentDate)}
           onItemDeleted={() => fetchTimeline(currentDate)}
+        />
+      )}
+
+      {/* Photo AI Modal */}
+      {isPhotoModalOpen && (
+        <PhotoUploadModal
+          isOpen={isPhotoModalOpen}
+          selectedDate={currentDate}
+          onClose={() => setIsPhotoModalOpen(false)}
+          onSuccess={() => fetchTimeline(currentDate)}
+        />
+      )}
+
+      {/* Voice Food Log Modal */}
+      {isVoiceModalOpen && (
+        <VoiceLogModal
+          isOpen={isVoiceModalOpen}
+          selectedDate={currentDate}
+          onClose={() => setIsVoiceModalOpen(false)}
+          onSuccess={() => fetchTimeline(currentDate)}
         />
       )}
     </div>

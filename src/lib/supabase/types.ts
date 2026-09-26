@@ -25,7 +25,12 @@ export type FoodCategory =
   | 'other';
 
 export type FoodState = 'raw' | 'cooked' | 'packaged';
-export type DataProvenance = 'verified_database' | 'user_entered' | 'estimated';
+export type DataProvenance =
+  | 'verified_database'
+  | 'user_entered'
+  | 'estimated'
+  | 'ai_photo_estimate'
+  | 'ai_voice_parse';
 
 export type StandardPortion = {
   unit: string; // e.g. "katori", "piece", "cup", "ladle", "plate", "glass"
@@ -191,6 +196,17 @@ export type MealItem = {
   source_reference: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type AIActionType = 'photo_analysis' | 'voice_transcription' | 'food_parsing';
+
+export type AIUsageLog = {
+  id: string;
+  user_id: string;
+  action_type: AIActionType;
+  provider: string;
+  model: string;
+  created_at: string;
 };
 
 export type Json =
@@ -527,6 +543,26 @@ export type Database = {
           source_reference?: string | null;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_usage_logs: {
+        Row: AIUsageLog;
+        Insert: {
+          id?: string;
+          user_id: string;
+          action_type: AIActionType;
+          provider?: string;
+          model?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          action_type?: AIActionType;
+          provider?: string;
+          model?: string;
+          created_at?: string;
         };
         Relationships: [];
       };

@@ -79,6 +79,9 @@ export type AddMealItemInput = {
   };
   quantity: number;
   unit: string;
+  provenance?: DataProvenance;
+  portionAssumption?: string | null;
+  isEstimatedPortion?: boolean;
 };
 
 export type UpdateMealItemInput = {
@@ -513,9 +516,11 @@ export async function addFoodToMeal(
     fiber: calculated ? calculated.fiber : input.customFood?.fiber || 0,
     sugar: calculated ? calculated.sugar : input.customFood?.sugar ?? null,
     sodium_mg: calculated ? calculated.sodiumMg : input.customFood?.sodium_mg ?? null,
-    is_estimated_portion: calculated ? calculated.isEstimatedPortion : false,
-    portion_assumption: calculated?.portionAssumption || null,
-    data_provenance: provenance,
+    is_estimated_portion: input.isEstimatedPortion !== undefined
+      ? input.isEstimatedPortion
+      : (calculated ? calculated.isEstimatedPortion : false),
+    portion_assumption: input.portionAssumption || calculated?.portionAssumption || null,
+    data_provenance: input.provenance || provenance,
     source_reference: sourceRef,
   };
 
