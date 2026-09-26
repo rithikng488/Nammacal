@@ -75,6 +75,86 @@ export type WeightLog = {
   updated_at: string;
 };
 
+export type ActivityType =
+  | 'walking'
+  | 'running'
+  | 'cycling'
+  | 'strength_training'
+  | 'gym_workout'
+  | 'swimming'
+  | 'yoga'
+  | 'sports'
+  | 'other';
+
+export type ActivityIntensity = 'light' | 'moderate' | 'vigorous';
+
+export type ActivitySource = 'manual' | 'health_connect' | 'device' | 'import';
+
+export type CalorieProvenance = 'calculated_activity_estimate' | 'device_reported';
+
+export type ActivityLog = {
+  id: string;
+  user_id: string;
+  activity_type: ActivityType;
+  duration_minutes: number;
+  distance_km: number | null;
+  steps: number | null;
+  intensity: ActivityIntensity;
+  calories_burned: number | null;
+  calorie_provenance: CalorieProvenance | null;
+  logged_at: string;
+  note: string | null;
+  source: ActivitySource;
+  created_at: string;
+  updated_at: string;
+};
+
+export type StepSource = 'manual' | 'health_connect' | 'device';
+
+export type DailyActivitySummary = {
+  id: string;
+  user_id: string;
+  log_date: string;
+  steps: number;
+  step_source: StepSource;
+  active_duration_minutes: number;
+  estimated_calories_burned: number;
+  device_calories_burned: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WaterLog = {
+  id: string;
+  user_id: string;
+  amount_ml: number;
+  logged_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Habit = {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  frequency: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type HabitLog = {
+  id: string;
+  habit_id: string;
+  user_id: string;
+  logged_date: string;
+  completed: boolean;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Invitation = {
   id: string;
   email: string;
@@ -607,6 +687,138 @@ export type Database = {
           user_id?: string;
           weight_kg?: number;
           logged_at?: string;
+          note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      activity_logs: {
+        Row: ActivityLog;
+        Insert: {
+          id?: string;
+          user_id: string;
+          activity_type: ActivityType;
+          duration_minutes: number;
+          distance_km?: number | null;
+          steps?: number | null;
+          intensity?: ActivityIntensity;
+          calories_burned?: number | null;
+          calorie_provenance?: CalorieProvenance | null;
+          logged_at?: string;
+          note?: string | null;
+          source?: ActivitySource;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          activity_type?: ActivityType;
+          duration_minutes?: number;
+          distance_km?: number | null;
+          steps?: number | null;
+          intensity?: ActivityIntensity;
+          calories_burned?: number | null;
+          calorie_provenance?: CalorieProvenance | null;
+          logged_at?: string;
+          note?: string | null;
+          source?: ActivitySource;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      daily_activity_summary: {
+        Row: DailyActivitySummary;
+        Insert: {
+          id?: string;
+          user_id: string;
+          log_date?: string;
+          steps?: number;
+          step_source?: StepSource;
+          active_duration_minutes?: number;
+          estimated_calories_burned?: number;
+          device_calories_burned?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          log_date?: string;
+          steps?: number;
+          step_source?: StepSource;
+          active_duration_minutes?: number;
+          estimated_calories_burned?: number;
+          device_calories_burned?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      water_logs: {
+        Row: WaterLog;
+        Insert: {
+          id?: string;
+          user_id: string;
+          amount_ml: number;
+          logged_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          amount_ml?: number;
+          logged_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      habits: {
+        Row: Habit;
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          description?: string | null;
+          frequency?: string;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          description?: string | null;
+          frequency?: string;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      habit_logs: {
+        Row: HabitLog;
+        Insert: {
+          id?: string;
+          habit_id: string;
+          user_id: string;
+          logged_date?: string;
+          completed?: boolean;
+          note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          habit_id?: string;
+          user_id?: string;
+          logged_date?: string;
+          completed?: boolean;
           note?: string | null;
           created_at?: string;
           updated_at?: string;

@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Calendar,
-  Flame,
   PlusCircle,
   Camera,
   Mic,
@@ -12,20 +11,34 @@ import {
   Target,
   BookOpen,
   RefreshCw,
-  Sparkles,
+  Activity,
+  Droplet,
+  CheckCircle2,
 } from "lucide-react";
 import { DailyNutritionSummary } from "@/components/dashboard/DailyNutritionSummary";
 import { CurrentWeightCard } from "@/components/dashboard/CurrentWeightCard";
 import { TodayMealsSummary } from "@/components/dashboard/TodayMealsSummary";
+import { ActivityDashboardCard } from "@/components/dashboard/ActivityDashboardCard";
+import { WaterDashboardCard } from "@/components/dashboard/WaterDashboardCard";
+import { HabitsDashboardCard } from "@/components/dashboard/HabitsDashboardCard";
 import { NutritionTrendChart } from "@/components/dashboard/NutritionTrendChart";
 import { WeightTrendChart } from "@/components/dashboard/WeightTrendChart";
+
 import { PhotoUploadModal } from "@/components/ai/PhotoUploadModal";
 import { VoiceLogModal } from "@/components/ai/VoiceLogModal";
 import { WeightLogModal } from "@/components/weight/WeightLogModal";
 import { TargetSettingsModal } from "@/components/targets/TargetSettingsModal";
+import { ActivityLogModal } from "@/components/activity/ActivityLogModal";
+import { StepsLogModal } from "@/components/activity/StepsLogModal";
+import { WaterLogModal } from "@/components/water/WaterLogModal";
+import { HabitManagementModal } from "@/components/habits/HabitManagementModal";
+
 import type { DailyTimeline } from "@/lib/meals/meal-service";
 import type { UserNutritionTargets } from "@/lib/targets/target-service";
 import type { WeightChangeResult } from "@/lib/weight/weight-service";
+import type { DayActivitySummaryResult } from "@/lib/activity/activity-service";
+import type { DailyWaterSummaryResult } from "@/lib/water/water-service";
+import type { HabitWithTodayStatus } from "@/lib/habits/habit-service";
 import type { MealType } from "@/lib/supabase/types";
 import { useRouter } from "next/navigation";
 
@@ -42,6 +55,10 @@ export default function DashboardPage() {
     dailySteps: 8000,
   });
   const [weightData, setWeightData] = useState<WeightChangeResult | null>(null);
+  const [activitySummary, setActivitySummary] = useState<DayActivitySummaryResult | null>(null);
+  const [waterSummary, setWaterSummary] = useState<DailyWaterSummaryResult | null>(null);
+  const [habits, setHabits] = useState<HabitWithTodayStatus[]>([]);
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +67,10 @@ export default function DashboardPage() {
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
   const [isTargetsModalOpen, setIsTargetsModalOpen] = useState(false);
+  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+  const [isStepsModalOpen, setIsStepsModalOpen] = useState(false);
+  const [isWaterModalOpen, setIsWaterModalOpen] = useState(false);
+  const [isHabitsModalOpen, setIsHabitsModalOpen] = useState(false);
 
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true);
@@ -68,6 +89,9 @@ export default function DashboardPage() {
       setTimeline(json.timeline);
       if (json.targets) setTargets(json.targets);
       if (json.weight) setWeightData(json.weight);
+      if (json.activity) setActivitySummary(json.activity);
+      if (json.water) setWaterSummary(json.water);
+      if (json.habits) setHabits(json.habits);
     } catch (err: unknown) {
       setError((err as Error).message);
     } finally {
@@ -123,85 +147,129 @@ export default function DashboardPage() {
       />
 
       {/* 2. Quick Action Buttons Bar */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+      <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
         <Link
           href="/meals"
-          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-emerald-500/50 hover:bg-emerald-50/20 transition-all text-center group"
+          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-emerald-500/50 hover:bg-emerald-50/20 transition-all text-center group"
         >
-          <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
+          <div className="w-7 h-7 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
             <PlusCircle className="w-4 h-4" />
           </div>
-          <span className="text-[11px] font-bold text-stone-800 dark:text-stone-200">Log Food</span>
+          <span className="text-[10px] font-bold text-stone-800 dark:text-stone-200">Log Food</span>
         </Link>
 
         <button
           type="button"
           onClick={() => setIsPhotoModalOpen(true)}
-          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-amber-500/50 hover:bg-amber-50/20 transition-all text-center group"
+          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-amber-500/50 hover:bg-amber-50/20 transition-all text-center group"
         >
-          <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
+          <div className="w-7 h-7 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
             <Camera className="w-4 h-4" />
           </div>
-          <span className="text-[11px] font-bold text-stone-800 dark:text-stone-200">Photo AI</span>
+          <span className="text-[10px] font-bold text-stone-800 dark:text-stone-200">Photo AI</span>
         </button>
 
         <button
           type="button"
           onClick={() => setIsVoiceModalOpen(true)}
-          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-indigo-500/50 hover:bg-indigo-50/20 transition-all text-center group"
+          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-indigo-500/50 hover:bg-indigo-50/20 transition-all text-center group"
         >
-          <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
+          <div className="w-7 h-7 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
             <Mic className="w-4 h-4" />
           </div>
-          <span className="text-[11px] font-bold text-stone-800 dark:text-stone-200">Voice Log</span>
+          <span className="text-[10px] font-bold text-stone-800 dark:text-stone-200">Voice Log</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsActivityModalOpen(true)}
+          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-orange-500/50 hover:bg-orange-50/20 transition-all text-center group"
+        >
+          <div className="w-7 h-7 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
+            <Activity className="w-4 h-4" />
+          </div>
+          <span className="text-[10px] font-bold text-stone-800 dark:text-stone-200">Activity</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsWaterModalOpen(true)}
+          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-sky-500/50 hover:bg-sky-50/20 transition-all text-center group"
+        >
+          <div className="w-7 h-7 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
+            <Droplet className="w-4 h-4" />
+          </div>
+          <span className="text-[10px] font-bold text-stone-800 dark:text-stone-200">Water</span>
         </button>
 
         <button
           type="button"
           onClick={() => setIsWeightModalOpen(true)}
-          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-blue-500/50 hover:bg-blue-50/20 transition-all text-center group"
+          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-blue-500/50 hover:bg-blue-50/20 transition-all text-center group"
         >
-          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
+          <div className="w-7 h-7 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
             <Scale className="w-4 h-4" />
           </div>
-          <span className="text-[11px] font-bold text-stone-800 dark:text-stone-200">Log Weight</span>
+          <span className="text-[10px] font-bold text-stone-800 dark:text-stone-200">Weight</span>
         </button>
 
-        <Link
-          href="/recipes"
-          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-emerald-500/50 hover:bg-emerald-50/20 transition-all text-center group"
+        <button
+          type="button"
+          onClick={() => setIsHabitsModalOpen(true)}
+          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-purple-500/50 hover:bg-purple-50/20 transition-all text-center group"
         >
-          <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
-            <BookOpen className="w-4 h-4" />
+          <div className="w-7 h-7 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
+            <CheckCircle2 className="w-4 h-4" />
           </div>
-          <span className="text-[11px] font-bold text-stone-800 dark:text-stone-200">Recipes</span>
-        </Link>
+          <span className="text-[10px] font-bold text-stone-800 dark:text-stone-200">Habits</span>
+        </button>
 
         <button
           type="button"
           onClick={() => setIsTargetsModalOpen(true)}
-          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-purple-500/50 hover:bg-purple-50/20 transition-all text-center group"
+          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-stone-500/50 hover:bg-stone-50/20 transition-all text-center group"
         >
-          <div className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
+          <div className="w-7 h-7 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
             <Target className="w-4 h-4" />
           </div>
-          <span className="text-[11px] font-bold text-stone-800 dark:text-stone-200">Targets</span>
+          <span className="text-[10px] font-bold text-stone-800 dark:text-stone-200">Targets</span>
         </button>
       </div>
 
-      {/* 3. Current Body Weight Card */}
-      <CurrentWeightCard
-        weightData={weightData}
-        onOpenLogWeight={() => setIsWeightModalOpen(true)}
-      />
-
-      {/* 4. Today's Meals Section */}
+      {/* 3. Today's Meals Section */}
       <TodayMealsSummary
         timeline={timeline}
         onAddFood={handleAddFoodDirect}
       />
 
-      {/* 5. Historical Progress Analytics: Nutrition Trends & Weight Trend */}
+      {/* 4. Activity Dashboard Card */}
+      <ActivityDashboardCard
+        activitySummary={activitySummary}
+        onOpenLogActivity={() => setIsActivityModalOpen(true)}
+        onOpenLogSteps={() => setIsStepsModalOpen(true)}
+      />
+
+      {/* 5. Water Dashboard Card */}
+      <WaterDashboardCard
+        waterSummary={waterSummary}
+        onOpenCustomLog={() => setIsWaterModalOpen(true)}
+        onWaterUpdated={fetchDashboardData}
+      />
+
+      {/* 6. Current Body Weight Card */}
+      <CurrentWeightCard
+        weightData={weightData}
+        onOpenLogWeight={() => setIsWeightModalOpen(true)}
+      />
+
+      {/* 7. Habits Dashboard Card */}
+      <HabitsDashboardCard
+        habits={habits}
+        onOpenManageHabits={() => setIsHabitsModalOpen(true)}
+        onHabitsUpdated={fetchDashboardData}
+      />
+
+      {/* 8. Historical Progress Analytics: Nutrition Trends & Weight Trend */}
       <div className="space-y-4">
         <NutritionTrendChart />
         <WeightTrendChart />
@@ -238,6 +306,41 @@ export default function DashboardPage() {
           isOpen={isTargetsModalOpen}
           initialTargets={targets}
           onClose={() => setIsTargetsModalOpen(false)}
+          onSuccess={fetchDashboardData}
+        />
+      )}
+
+      {isActivityModalOpen && (
+        <ActivityLogModal
+          isOpen={isActivityModalOpen}
+          userWeightKg={weightData?.current?.weight_kg}
+          onClose={() => setIsActivityModalOpen(false)}
+          onSuccess={fetchDashboardData}
+        />
+      )}
+
+      {isStepsModalOpen && (
+        <StepsLogModal
+          isOpen={isStepsModalOpen}
+          initialSteps={activitySummary?.totalSteps}
+          onClose={() => setIsStepsModalOpen(false)}
+          onSuccess={fetchDashboardData}
+        />
+      )}
+
+      {isWaterModalOpen && (
+        <WaterLogModal
+          isOpen={isWaterModalOpen}
+          onClose={() => setIsWaterModalOpen(false)}
+          onSuccess={fetchDashboardData}
+        />
+      )}
+
+      {isHabitsModalOpen && (
+        <HabitManagementModal
+          isOpen={isHabitsModalOpen}
+          habits={habits}
+          onClose={() => setIsHabitsModalOpen(false)}
           onSuccess={fetchDashboardData}
         />
       )}
