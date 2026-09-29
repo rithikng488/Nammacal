@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { ToastProvider } from "@/lib/ui/toast-context";
 
 export const metadata: Metadata = {
   title: "NammaCal — Private Nutrition & Activity Tracker",
@@ -26,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col justify-between antialiased selection:bg-emerald-500 selection:text-white">
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { MealSectionCard } from "@/components/meals/MealSectionCard";
 import { AddFoodModal } from "@/components/meals/AddFoodModal";
@@ -66,7 +67,8 @@ function offsetDays(dateStr: string, days: number): string {
   return `${newYear}-${newMonth}-${newDay}`;
 }
 
-export default function MealsPage() {
+function MealsPageContent() {
+  const searchParams = useSearchParams();
   const [currentDate, setCurrentDate] = useState<string>(getTodayIsoDate());
   const [timeline, setTimeline] = useState<DailyTimeline | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -78,6 +80,20 @@ export default function MealsPage() {
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<MealItem | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Parse initial query params (e.g. /meals?mode=voice, /meals?mode=scanner, /meals?addMeal=lunch)
+  useEffect(() => {
+    const mode = searchParams.get("mode");
+    const addMeal = searchParams.get("addMeal");
+    if (mode === "voice") {
+      setIsVoiceModalOpen(true);
+    } else if (mode === "scanner" || mode === "photo") {
+      setIsPhotoModalOpen(true);
+    }
+    if (addMeal && ["breakfast", "lunch", "dinner", "snack"].includes(addMeal)) {
+      setAddFoodMealType(addMeal as MealType);
+    }
+  }, [searchParams]);
 
   const fetchTimeline = useCallback(async (date: string) => {
     try {
@@ -403,5 +419,19 @@ export default function MealsPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function MealsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-xs text-slate-400 animate-pulse">
+          Loading meals timeline...
+        </div>
+      }
+    >
+      <MealsPageContent />
+    </Suspense>
   );
 }

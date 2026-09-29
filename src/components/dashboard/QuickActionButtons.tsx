@@ -9,28 +9,28 @@ export function QuickActionButtons() {
       href: "/meals",
       icon: PlusCircle,
       color: "bg-emerald-600 text-white",
-      badge: "Phase 3",
+      hint: "Search & Portion",
     },
     {
       title: "Recipes",
       href: "/recipes",
       icon: BookOpen,
       color: "bg-blue-600 text-white",
-      badge: "Phase 4",
+      hint: "Batch Calculations",
     },
     {
       title: "Voice Entry",
       href: "/meals?mode=voice",
       icon: Mic,
       color: "bg-indigo-600 text-white",
-      badge: "Phase 5",
+      hint: "Speak Tanglish / Tamil",
     },
     {
-      title: "AI Photo",
+      title: "Photo AI",
       href: "/meals?mode=scanner",
       icon: Camera,
       color: "bg-amber-600 text-white",
-      badge: "Phase 6",
+      hint: "Camera Recognition",
     },
   ];
 
@@ -42,21 +42,21 @@ export function QuickActionButtons() {
           <Link
             key={act.title}
             href={act.href}
-            className="flex items-center gap-2.5 p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 shadow-sm hover:border-emerald-500/50 hover:shadow-md transition-all active:scale-[0.98] group"
+            className="flex items-center gap-3 p-3.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-emerald-500/50 hover:shadow-md transition-all active:scale-[0.98] group"
           >
             <div
-              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${act.color} shadow-sm group-hover:scale-105 transition-transform`}
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${act.color} shadow-xs group-hover:scale-105 transition-transform`}
             >
               <Icon className="w-5 h-5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1">
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                <span className="text-xs font-bold text-stone-900 dark:text-stone-100 truncate">
                   {act.title}
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 font-medium">
-                {act.badge}
+              <span className="text-[10px] text-stone-400 font-medium truncate block">
+                {act.hint}
               </span>
             </div>
           </Link>

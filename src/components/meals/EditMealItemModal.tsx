@@ -156,6 +156,9 @@ export function EditMealItemModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150">
       <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800">
+        {/* Mobile Pull Bar */}
+        <div className="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto -mt-1 mb-2 sm:hidden shrink-0" />
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
