@@ -233,7 +233,7 @@ export default function RecipesPage() {
 
       {/* Recipe List */}
       {isLoading ? (
-        <div className="space-y-3 animate-pulse">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
@@ -282,7 +282,7 @@ export default function RecipesPage() {
           </Button>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
           {filteredRecipes.map((recipe) => {
             const isDeleting = isDeletingId === recipe.id;
             const hasCookedWeight = recipe.final_cooked_weight_g && recipe.final_cooked_weight_g > 0;

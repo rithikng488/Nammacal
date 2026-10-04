@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Scale, TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { Scale, TrendingDown, TrendingUp, Minus, AlertCircle } from "lucide-react";
 import type { WeightTrendResult } from "@/lib/weight/weight-service";
 
 export function WeightTrendChart() {
@@ -75,7 +75,18 @@ export function WeightTrendChart() {
           Loading weight trend...
         </div>
       ) : error ? (
-        <div className="p-3 rounded-xl bg-rose-50 text-rose-700 text-xs">{error}</div>
+        <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2.5">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+          <div className="space-y-1">
+            <p className="font-bold">Weight Progress Trend Error</p>
+            <p className="opacity-95">{error}</p>
+            {error.includes("NEXT_PUBLIC_SUPABASE") && (
+              <p className="text-[11px] text-rose-600 dark:text-rose-400 font-medium">
+                Tip: If deploying on Vercel, add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to Project Settings &gt; Environment Variables, then trigger a redeploy for them to take effect.
+              </p>
+            )}
+          </div>
+        </div>
       ) : entries.length < 2 ? (
         <div className="text-center py-8 text-xs text-stone-400 space-y-1">
           <p className="font-semibold text-stone-700 dark:text-stone-300">

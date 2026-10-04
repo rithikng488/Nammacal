@@ -134,23 +134,21 @@ export default function DashboardPage() {
       </div>
 
       {error && (
-        <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-300">
-          {error}
+        <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-300 space-y-1">
+          <p className="font-semibold">{error}</p>
+          {error.includes("NEXT_PUBLIC_SUPABASE") && (
+            <p className="text-[11px] text-rose-600 dark:text-rose-400 font-medium">
+              Tip: If deploying on Vercel, add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to Project Settings &gt; Environment Variables, then trigger a redeploy for them to take effect.
+            </p>
+          )}
         </div>
       )}
 
-      {/* 1. Daily Nutrition Targets Summary Card */}
-      <DailyNutritionSummary
-        timeline={timeline}
-        targets={targets}
-        onEditTargets={() => setIsTargetsModalOpen(true)}
-      />
-
-      {/* 2. Quick Action Buttons Bar */}
-      <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+      {/* Quick Action Buttons Bar */}
+      <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 sm:gap-2.5">
         <Link
           href="/meals"
-          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-emerald-500/50 hover:bg-emerald-50/20 transition-all text-center group"
+          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-emerald-500/50 hover:bg-emerald-50/20 transition-all text-center group"
         >
           <div className="w-7 h-7 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
             <PlusCircle className="w-4 h-4" />
@@ -161,7 +159,7 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={() => setIsPhotoModalOpen(true)}
-          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-amber-500/50 hover:bg-amber-50/20 transition-all text-center group"
+          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-amber-500/50 hover:bg-amber-50/20 transition-all text-center group"
         >
           <div className="w-7 h-7 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
             <Camera className="w-4 h-4" />
@@ -172,7 +170,7 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={() => setIsVoiceModalOpen(true)}
-          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-indigo-500/50 hover:bg-indigo-50/20 transition-all text-center group"
+          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-indigo-500/50 hover:bg-indigo-50/20 transition-all text-center group"
         >
           <div className="w-7 h-7 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
             <Mic className="w-4 h-4" />
@@ -183,7 +181,7 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={() => setIsActivityModalOpen(true)}
-          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-orange-500/50 hover:bg-orange-50/20 transition-all text-center group"
+          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-orange-500/50 hover:bg-orange-50/20 transition-all text-center group"
         >
           <div className="w-7 h-7 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
             <Activity className="w-4 h-4" />
@@ -194,7 +192,7 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={() => setIsWaterModalOpen(true)}
-          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-sky-500/50 hover:bg-sky-50/20 transition-all text-center group"
+          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-sky-500/50 hover:bg-sky-50/20 transition-all text-center group"
         >
           <div className="w-7 h-7 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
             <Droplet className="w-4 h-4" />
@@ -205,7 +203,7 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={() => setIsWeightModalOpen(true)}
-          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-blue-500/50 hover:bg-blue-50/20 transition-all text-center group"
+          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-blue-500/50 hover:bg-blue-50/20 transition-all text-center group"
         >
           <div className="w-7 h-7 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
             <Scale className="w-4 h-4" />
@@ -216,7 +214,7 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={() => setIsHabitsModalOpen(true)}
-          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-purple-500/50 hover:bg-purple-50/20 transition-all text-center group"
+          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-purple-500/50 hover:bg-purple-50/20 transition-all text-center group"
         >
           <div className="w-7 h-7 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
             <CheckCircle2 className="w-4 h-4" />
@@ -227,7 +225,7 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={() => setIsTargetsModalOpen(true)}
-          className="flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-stone-500/50 hover:bg-stone-50/20 transition-all text-center group"
+          className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-stone-500/50 hover:bg-stone-50/20 transition-all text-center group"
         >
           <div className="w-7 h-7 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 flex items-center justify-center mb-1 group-hover:scale-105 transition-transform">
             <Target className="w-4 h-4" />
@@ -236,44 +234,70 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* 3. Today's Meals Section */}
-      <TodayMealsSummary
-        timeline={timeline}
-        onAddFood={handleAddFoodDirect}
-      />
+      {/* Main Responsive Layout: 2 Columns on Desktop (lg+), 1 Column on Mobile */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Left Column (Nutrition & Meals Focus) */}
+        <div className="lg:col-span-7 xl:col-span-7 space-y-5">
+          {/* Daily Nutrition Targets Summary Card */}
+          <DailyNutritionSummary
+            timeline={timeline}
+            targets={targets}
+            onEditTargets={() => setIsTargetsModalOpen(true)}
+          />
 
-      {/* 4. Activity Dashboard Card */}
-      <ActivityDashboardCard
-        activitySummary={activitySummary}
-        onOpenLogActivity={() => setIsActivityModalOpen(true)}
-        onOpenLogSteps={() => setIsStepsModalOpen(true)}
-        onActivityUpdated={fetchDashboardData}
-      />
+          {/* Today's Logged Meals Section */}
+          <TodayMealsSummary
+            timeline={timeline}
+            onAddFood={handleAddFoodDirect}
+          />
 
-      {/* 5. Water Dashboard Card */}
-      <WaterDashboardCard
-        waterSummary={waterSummary}
-        onOpenCustomLog={() => setIsWaterModalOpen(true)}
-        onWaterUpdated={fetchDashboardData}
-      />
+          {/* Nutrition Trends (Desktop position) */}
+          <div className="hidden lg:block">
+            <NutritionTrendChart />
+          </div>
+        </div>
 
-      {/* 6. Current Body Weight Card */}
-      <CurrentWeightCard
-        weightData={weightData}
-        onOpenLogWeight={() => setIsWeightModalOpen(true)}
-      />
+        {/* Right Column (Activity, Water, Weight, Habits Focus) */}
+        <div className="lg:col-span-5 xl:col-span-5 space-y-5">
+          {/* Activity Dashboard Card */}
+          <ActivityDashboardCard
+            activitySummary={activitySummary}
+            onOpenLogActivity={() => setIsActivityModalOpen(true)}
+            onOpenLogSteps={() => setIsStepsModalOpen(true)}
+            onActivityUpdated={fetchDashboardData}
+          />
 
-      {/* 7. Habits Dashboard Card */}
-      <HabitsDashboardCard
-        habits={habits}
-        onOpenManageHabits={() => setIsHabitsModalOpen(true)}
-        onHabitsUpdated={fetchDashboardData}
-      />
+          {/* Water Dashboard Card */}
+          <WaterDashboardCard
+            waterSummary={waterSummary}
+            onOpenCustomLog={() => setIsWaterModalOpen(true)}
+            onWaterUpdated={fetchDashboardData}
+          />
 
-      {/* 8. Historical Progress Analytics: Nutrition Trends & Weight Trend */}
-      <div className="space-y-4">
-        <NutritionTrendChart />
-        <WeightTrendChart />
+          {/* Current Body Weight Card */}
+          <CurrentWeightCard
+            weightData={weightData}
+            onOpenLogWeight={() => setIsWeightModalOpen(true)}
+          />
+
+          {/* Habits Dashboard Card */}
+          <HabitsDashboardCard
+            habits={habits}
+            onOpenManageHabits={() => setIsHabitsModalOpen(true)}
+            onHabitsUpdated={fetchDashboardData}
+          />
+
+          {/* Weight Progress Trend (Desktop position) */}
+          <div className="hidden lg:block">
+            <WeightTrendChart />
+          </div>
+        </div>
+
+        {/* Mobile Analytics (Visible only on < lg screens at bottom of feed) */}
+        <div className="lg:hidden col-span-1 space-y-4">
+          <NutritionTrendChart />
+          <WeightTrendChart />
+        </div>
       </div>
 
       {/* Modal Dialogs */}

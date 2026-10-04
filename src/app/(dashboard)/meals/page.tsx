@@ -347,7 +347,7 @@ function MealsPageContent() {
         </div>
 
         {isLoading && !timeline ? (
-          <div className="space-y-3 animate-pulse">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 animate-pulse">
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
@@ -356,16 +356,18 @@ function MealsPageContent() {
             ))}
           </div>
         ) : (
-          timeline?.meals.map((meal) => (
-            <MealSectionCard
-              key={meal.mealType}
-              meal={meal}
-              onAddFood={(mealType) => setAddFoodMealType(mealType)}
-              onEditItem={(item) => setEditingItem(item)}
-              onDeleteItem={handleDeleteItem}
-              isDeletingId={deletingId}
-            />
-          ))
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 items-start">
+            {timeline?.meals.map((meal) => (
+              <MealSectionCard
+                key={meal.mealType}
+                meal={meal}
+                onAddFood={(mealType) => setAddFoodMealType(mealType)}
+                onEditItem={(item) => setEditingItem(item)}
+                onDeleteItem={handleDeleteItem}
+                isDeletingId={deletingId}
+              />
+            ))}
+          </div>
         )}
       </div>
 
