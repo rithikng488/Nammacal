@@ -1,4 +1,5 @@
 # Dependencies
+node_modules
 /node_modules
 /.pnp
 .pnp.js
@@ -7,6 +8,7 @@
 /coverage
 
 # Next.js build output
+.next
 /.next/
 /out/
 
@@ -18,11 +20,13 @@
 *.pem
 
 # Local env files - strictly ignored to protect secrets
+.env
+.env.local
+.env.*.local
 .env*.local
 .env.development
 .env.test
 .env.production
-.env
 
 # Exception: allow committed environment template
 !.env.example
